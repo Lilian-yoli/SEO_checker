@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint":"eslint"
+    "lint": "eslint"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +14,7 @@
     "express": "^4.18.2"
   },
   "devDependencies": {
+    "cheerio": "^1.0.0-rc.12",
     "eslint": "^8.45.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5"
