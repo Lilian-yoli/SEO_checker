@@ -57,126 +57,56 @@ const writeStream = (data, path) => {
   });
 };
 
-const checkImgWithoutAlt = async (html) => {
-  const result = makeSEORule(html, {
-    condition: 'elementWithoutAttr',
-    elements: 'img',
-    attr: 'alt',
-  });
-  return result;
+const defaultRules = {
+  img: { tag: 'img', attr: { name: 'alt' } },
+  a: { tag: 'a', attr: { name: 'rel' } },
+  title: { tag: 'title' },
+  descriptions: { tag: 'meta', attr: { name: 'name', value: 'descriptions' } },
+  keywords: { tag: 'meta', attr: { name: 'name', value: 'keywords' } },
+  strong: { tag: 'strong', limit: { type: 'upper', count: 15 } },
+  h1: { tag: 'h1', limit: { type: 'upper', count: 1 } },
 };
 
-const checkAWithoutRel = (html) => {
-  const result = makeSEORule(html, {
-    condition: 'elementWithoutAttr',
-    elements: 'a',
-    attr: 'rel',
-  });
-  return result;
-};
+const checkSEO = async (options, data) => {
+  if (!options) console.log("'options' is required for seo_checker.");
+  const predefinedRules = options.default;
+  const { rules } = options;
+  const allRules = [];
 
-const checkTitle = (html) => {
-  const result = makeSEORule(html, {
-    condition: 'withoutElement',
-    elements: ['head', 'title'],
-  });
-  return result;
-};
-
-const checkMeta = (html, attr, value) => {
-  const result = makeSEORule(html, {
-    condition: 'elementAttrNotMatchValue',
-    elements: ['meta'],
-    attr,
-    matchedValue: value,
-  });
-  return result;
-};
-
-const checkHead = (html) => {
-  const titleCheck = checkTitle(html);
-  const metaCheckDescription = checkMeta(html, 'name', 'description');
-  const metaCheckKeywords = checkMeta(html, 'name', 'keywords');
-  return [titleCheck, metaCheckDescription, metaCheckKeywords];
-};
-
-const checkStrong = (html, options = {}) => {
-  const { times } = options;
-  if (!times) {
-    throw new Error("'times' is not provided.");
-  }
-  const result = makeSEORule(html, {
-    condition: 'elemMoreThanX',
-    elements: ['strong'],
-    times,
-  });
-  return result;
-};
-
-const checkMoreThan1H1 = (html) => {
-  const result = makeSEORule(html, {
-    condition: 'elemMoreThanX',
-    elements: ['h1'],
-    times: 1,
-  });
-  return result;
-};
-
-const organizeOutput = (outputs) => {
-  const flatOutputs = outputs.flat();
-  let finalOutput = '';
-  flatOutputs.map((output) => {
-    if (output) {
-      finalOutput += `${output}\n`;
-    }
-  });
-  return finalOutput.trim();
-};
-
-const runRules = (html, fns, options = { additionals: [] }) => {
-  try {
-    const { additionals } = options;
-    const outputs = fns.map((fn) => {
-      const additionalFnResult = additionals.map((additional) => {
-        if (additional.fn === fn) {
-          return fn(html, additional);
-        }
-      });
-      if (additionalFnResult[0]) {
-        return additionalFnResult;
+  if (predefinedRules) {
+    Object.keys(predefinedRules).map((key) => {
+      if (typeof predefinedRules[key] === 'number') {
+        defaultRules[key].limit.count = predefinedRules[key];
+        rules.push(defaultRules[key]);
+      } else if (predefinedRules[key]) {
+        rules.push(defaultRules[key]);
       }
-      return fn(html);
     });
-    const organizedOutput = organizeOutput(outputs);
-    return organizedOutput;
-  } catch (err) {
-    console.error(err);
   }
-};
 
-const sendOutputs = (data, options = {}) => {
-  try {
-    const { outputType, outputPath } = options;
-    if (outputType === 'stream') {
-      return writeStream(data, outputPath);
-    } if (outputType === 'file') {
-      return writeFile(data, outputPath);
-    }
-    console.log(data);
-  } catch (err) {
-    console.error(err);
+  if (Array.isArray(rules)) {
+    rules.map((rule) => {
+      allRules.push(rule);
+    });
+  }
+
+  if (options.inputType && options.inputType === 'file') {
+    const html = await readFromFile(data);
+    const result = makeSEORule(html, allRules);
+    if (options.print) console.log(result);
+    writeFile(result, options.output);
+  } else if (options.inputType && options.inputType === 'stream') {
+    const html = await readFromStream(data);
+    const result = makeSEORule(html, allRules);
+    if (options.print) console.log(result);
+    writeStream(result, options.output);
+  } else if (!options.inputType) {
+    console.error(new Error('"inputType" is missing.'));
+  } else {
+    console.error(new Error('Invalid inputType.'));
   }
 };
 
 module.exports = {
-  readFromFile,
-  readFromStream,
-  makeSEORule,
-  runRules,
-  sendOutputs,
-  checkImgWithoutAlt,
-  checkAWithoutRel,
-  checkHead,
-  checkStrong,
-  checkMoreThan1H1,
+  checkSEO,
 };
