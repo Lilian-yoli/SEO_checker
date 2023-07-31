@@ -1,27 +1,56 @@
 # SEO_checker
 This module is a tool for examining SEO by scanning several rules on html. 
 
-## Example
+## Default Usage
 ```
-// Reading data from file
-readFromFile('test.html')
+checkSEO({ 
+    inputType: 'file', 
+    output: 'test.txt' 
+    }, 
+    'test.html'
+);
+```
 
-// Reading data from stream
-readFromStream(stream_data)
+## Custom Options
+```
+checkSEO({
+  inputType: 'file',
+  output: 'test.txt', // result output path
+  print: true, // default: true
 
-// Making SEO check rules
-makeSEORule(html, {
-    condition: 'withoutElement',
-    elements: ['head', 'title'],
-})
+  // default rules
+  default: {
+    img: true, // default: true
+    a: true, // default: true
+    title: true, // default: true
+    descriptions: false, // default: true
+    keywords: true, // default: true
+    strong: 2, // default: 15
+    h1: 2, // default: 1
+  },
 
-// Run and combine the check rules. The additionals setting is for rule with occurrence limitation.
-const output = runRules(
-    html,
-    [checkHead, checkStrong],
-    { additionals: [{ fn: checkStrong, times: 2 }] },
+  // Customize rules
+  rules: [
+    // tag is exist or not
+    { tag: 'video' },
+
+    // tag is more than specific count
+    { tag: 'h2', limit: { type: 'upper', count: 2 } },
+
+    // attribute value of tag is exist or not
+    { tag: 'meta', attr: { name: 'property', value: 'og:url' } },
+    { tag: 'meta', attr: { name: 'name', value: 'robots' } },
+  ],
+},
+"test.html"
 )
-
-// Send the output by specific way. The default mode is console.
-sendOutputs(output, { outputType: 'stream', outputPath: 'outputs.txt' });
+```
+## Node Stream Usage
+```
+checkSEO({ 
+    inputType: 'stream', 
+    output: 'test.txt' 
+    }, 
+    stream_data
+);
 ```

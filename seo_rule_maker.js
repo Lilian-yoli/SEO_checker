@@ -6,7 +6,7 @@ const detectElemWithoutAttr = (html, rule) => {
   const elements = $(tag);
   let counter = 0;
   if (attr.name) {
-    elements.each((index, elem) => {
+    elements.each((_, elem) => {
       const attribute = $(elem).attr(attr.name);
       if (!attribute) {
         counter += 1;
@@ -37,7 +37,7 @@ const detectElemAttrNotMatchValue = (html, rule) => {
   const elements = $(tag);
 
   let counter = 0;
-  elements.each((index, elem) => {
+  elements.each((_, elem) => {
     const attrValue = $(elem).attr(attr.name);
     if (attrValue === attr.value) counter += 1;
   });
@@ -84,7 +84,12 @@ const classifyRules = (html, rule) => {
 const makeSEORule = (html, allRules) => {
   if (!html) throw new Error('HTML does not existed.');
   const messages = allRules.map((rule) => classifyRules(html, rule));
-  const output = messages.join('\n');
+  const output = messages.reduce((acc, message) => {
+    if (message) {
+      return `${acc + message}\n`;
+    }
+    return acc;
+  }, '');
   return output.trim();
 };
 

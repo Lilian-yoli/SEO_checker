@@ -68,12 +68,16 @@ const defaultRules = {
 };
 
 const checkSEO = async (options, data) => {
-  if (!options) console.log("'options' is required for seo_checker.");
+  if (!options) console.error(new Error("'options' is required for seo_checker."));
   const predefinedRules = options.default;
   const { rules } = options;
   const allRules = [];
 
-  if (predefinedRules) {
+  if (!predefinedRules) {
+    Object.values(defaultRules).map((rule) => {
+      allRules.push(rule);
+    });
+  } else {
     Object.keys(predefinedRules).map((key) => {
       if (typeof predefinedRules[key] === 'number') {
         defaultRules[key].limit.count = predefinedRules[key];
