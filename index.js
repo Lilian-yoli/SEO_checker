@@ -94,21 +94,23 @@ const checkSEO = async (options, data) => {
     });
   }
 
-  if (options.inputType && options.inputType === 'file') {
-    const html = await readFromFile(data);
-    const result = makeSEORule(html, allRules);
-    if (options.print) console.log(result);
-    writeFile(result, options.output);
-  } else if (options.inputType && options.inputType === 'stream') {
-    const html = await readFromStream(data);
-    const result = makeSEORule(html, allRules);
-    if (options.print) console.log(result);
-    writeStream(result, options.output);
-  } else if (!options.inputType) {
+  if (!options.inputType) {
     console.error(new Error('"inputType" is missing.'));
+  }
+  const { print, output } = options;
+  const isConsoleLog = print === undefined ? true : !!print;
+
+  let html;
+  if (options.inputType && options.inputType === 'file') {
+    html = await readFromFile(data);
+  } else if (options.inputType && options.inputType === 'stream') {
+    html = await readFromStream(data);
   } else {
     console.error(new Error('Invalid inputType.'));
   }
+  const result = makeSEORule(html, allRules);
+  if (isConsoleLog) console.log(result);
+  if (output) writeStream(result, output);
 };
 
 module.exports = {
