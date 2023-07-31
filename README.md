@@ -3,6 +3,8 @@ This module is a tool for examining SEO by scanning several rules on html.
 
 ## Default Usage
 ```
+const { checkSEO } = require('seo_checker');
+
 checkSEO({ 
     inputType: 'file', 
     output: 'test.txt' 
